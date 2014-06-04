@@ -1,34 +1,85 @@
 (function() {
-    var loaded = {};
+    var registered = {},
+        loading = {},
+        loaded = {};
 
-    function loadSvg(file, success, fail) {
-        var pat = /<svg.+?>([\w\W]*)<\/svg>/i,
-            req = new enyo.Ajax({url: file});
+    function loadSrc(src) {
+        var req = new enyo.Ajax({url: src, handleAs: "xml", cacheBust: false});
 
+        loading[src] = true;
         req.response(function(xhr, res) {
-            var match = res.match(pat),
-                svgData = match[0];
-
-            loaded[file] = svgData;
-            success(svgData);
+            srcLoaded(src, res);
         });
         req.go();
+    }
+
+    function srcLoaded(src, data) {
+        loaded[src] = data;
+        loading[src] = false;
+        var ctrls = registered[src] || {};
+
+        for (var id in ctrls) {
+            ctrls[id].sourceLoaded();
+        } 
+    }
+
+    function register(ctrl) {
+        var src = ctrl.get("src"),
+            id = ctrl.get("id");
+
+        registered[src] = registered[src] || {};
+        registered[src][id] = ctrl;
+
+        if (!loaded[src] && !loading[src]) {
+            loadSrc(src);
+        }
+    }
+
+    function unregister(ctrl) {
+        if (registered[ctrl.src]) {
+            delete registered[ctrl.src][ctrl.id];
+        }
     }
 
     enyo.kind({
         name: "SvgIcon",
         kind: "Control",
         tag: "svg",
+        svgAttributes: ["version", "xmlns", "xmlns:xlink", "width", "height", "viewBox"],
         published: {
             src: ""
         },
-        generateHtml: function() {
-            var html = loaded[this.src];
-
-            if (!html) {
-                loadSvg(this.src, this.parent.render.bind(this.parent));
-                html = "<svg></svg>";
+        create: enyo.inherit(function(sup) {
+            return function() {
+                sup.apply(this, arguments);
+                register(this);
+                this.extractSourceAttributes();
+            };
+        }),
+        destroy: enyo.inherit(function (sup) {
+            return function() {
+                unregister(this);
+                sup.apply(this, arguments);
+            };
+        }),
+        extractSourceAttributes: function() {
+            var src = loaded[this.src];
+            if (src) {
+                var svg = src.querySelector("svg"),
+                    attrs = this.attributes;
+                this.svgAttributes.forEach(function(attr) {
+                    attrs[attr] = attrs[attr] || svg.getAttribute(attr);
+                });
             }
+        },
+        sourceLoaded: function(doc) {
+            this.extractSourceAttributes();
+            this.render();
+        },
+        generateInnerHtml: function() {
+            var doc = loaded[this.src],
+                svg = doc && doc.querySelector("svg"),
+                html = svg && svg.innerHTML || "";
 
             return html;
         }
