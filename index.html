@@ -14,9 +14,16 @@
         <script>
             enyo.kind({
                 name: "SvgSample",
+                handlers: {
+                    ontap: "changeSources"
+                },
+                changeSources: function() {
+                    this.$.icon1.set("src", "flame.svg");
+                    this.$.icon2.set("src", "fish.svg");
+                },
                 components: [
-                    {kind: "SvgIcon", src: "fish.svg"},
-                    {kind: "SvgIcon", src: "fish.svg"},
+                    {kind: "SvgIcon", name: "icon1", src: "fish.svg", style: "width: 200px; height: 200px; margin: 10px;"},
+                    {kind: "SvgIcon", name: "icon2", src: "flame.svg", style: "width: 200px; height: 200px; margin: 10px; stroke: rgb(250, 250, 92); fill: rgb(248, 3, 13);"},
                 ]
             });
             new SvgSample().renderInto(document.body);
