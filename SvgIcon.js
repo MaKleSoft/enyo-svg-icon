@@ -27,12 +27,9 @@
 
     // Registeres an element so it can be updated when its source data is loaded
     // Loads the data if it hasn't been loaded yet
-    function register(ctrl) {
-        var src = ctrl.get("src"),
-            id = ctrl.get("id");
-
+    function register(src, ctrl) {
         registered[src] = registered[src] || {};
-        registered[src][id] = ctrl;
+        registered[src][ctrl.get("id")] = ctrl;
 
         if (!loaded[src] && !loading[src]) {
             loadSrc(src);
@@ -40,9 +37,9 @@
     }
 
     // Unregisteres an element
-    function unregister(ctrl) {
-        if (registered[ctrl.src]) {
-            delete registered[ctrl.src][ctrl.id];
+    function unregister(src, ctrl) {
+        if (registered[src]) {
+            delete registered[src][ctrl.get("id")];
         }
     }
 
@@ -56,20 +53,21 @@
             // svg file to use as a souce for this element
             src: ""
         },
-        create: enyo.inherit(function(sup) {
-            return function() {
-                sup.apply(this, arguments);
-                // Register this element so it can be updated when its source has been loaded
-                register(this);
-                this.extractSourceAttributes();
-            };
-        }),
         destroy: enyo.inherit(function (sup) {
             return function() {
-                unregister(this);
+                unregister(this.src, this);
                 sup.apply(this, arguments);
             };
         }),
+        srcChanged: function(oldSrc) {
+            unregister(oldSrc, this);
+            if (this.src) {
+                // Register this element so it can be updated when its source has been loaded
+                register(this.src, this);
+                this.extractSourceAttributes();
+                this.render();
+            }
+        },
         //* Applies the attributes from the source svg to this control
         extractSourceAttributes: function() {
             var src = loaded[this.src];
