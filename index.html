@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Spinner sample</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <link href="http://enyojs.com/enyo-2.4.0/enyo.css" rel="stylesheet"/>
+        <script src="http://enyojs.com/enyo-2.4.0/enyo.js" charset="utf-8"></script>
+        <script src="SvgIcon.js" charset="utf-8"></script>
+    </head>
+    <body>        
+        <script>
+            enyo.kind({
+                name: "SvgSample",
+                components: [
+                    {kind: "SvgIcon", src: "fish.svg"},
+                    {kind: "SvgIcon", src: "fish.svg"},
+                ]
+            });
+            new SvgSample().renderInto(document.body);
+        </script>
+    </body>
+</html>
